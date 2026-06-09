@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CORA-POS</title>
+    <link rel="icon" href="../imgs/Logo.ico" type="image/x-icon">
+    <link rel="stylesheet" href="Inicio.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+
+<div class="pos">
+
+    <!-- Parte izquierda -->
+
+    <aside class="sidebar">
+
+        <div class="usuario">
+    <div class="avatar">
+        <i class="fa-solid fa-user"></i>
+    </div>
+
+    <span>Admin</span>
+</div>
+
+        <div class="logo">
+            <img src="../imgs/logo.png" alt="">
+        </div>
+
+    <ul>
+
+    <li onclick="mostrarVentas()" title="Ventas">
+        <i class="fa-solid fa-cart-shopping"></i>
+    </li>
+
+    <li onclick="mostrarInventario()" title="Inventario">
+        <i class="fa-solid fa-box"></i>
+    </li>
+
+    <li onclick="mostrarReportes()" title="Registro de ventas">
+        <i class="fa-solid fa-chart-column"></i>
+    </li>
+
+</ul>
+
+    </aside>
+
+
+<!-- Productos -->
+
+<section class="products" id="ventas-section">
+
+    <div class="search" id="busqueda">
+
+        <input
+        type="text"
+        id="buscar"
+        placeholder="Buscar productos"
+        onkeyup="buscarProducto()">
+
+    </div>
+
+    <div class="grid" id="productos">
+
+         <div class="card add-card" onclick="abrirModal()">
+
+        <i class="fa-solid fa-plus"></i>
+
+        <p>Agregar producto</p>
+
+        </div>
+
+    </div>
+
+</section>
+
+<!-- Inventario -->
+
+<section
+class="products"
+id="inventario-section"
+style="display:none;">
+
+    <h2>Inventario</h2>
+
+    <table id="listaInventario">
+
+        <thead>
+            <tr>
+                <th>Producto</th>
+                <th>Precio</th>
+                <th>Stock</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+
+        <tbody></tbody>
+
+    </table>
+
+</section>
+
+<!-- REPORTES -->
+
+<section
+class="products"
+id="reportes-section"
+style="display:none;">
+
+    <h2>Registro de Ventas</h2>
+
+    <table id="tablaVentas">
+
+        <thead>
+            <tr>
+                <th>Cliente</th>
+                <th>Fecha</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+
+        <tbody></tbody>
+
+    </table>
+
+    <canvas id="graficaProductos"></canvas>
+
+    <section
+class="products"
+id="reportes-section"
+style="display:none;">
+
+    <h2>Estadísticas de Ventas</h2>
+
+    <div class="dashboard-reportes">
+
+        <div class="card-reporte">
+            <h3>Total de Ventas</h3>
+            <p id="totalVentas">0</p>
+        </div>
+
+        <div class="card-reporte">
+            <h3>Producto Más Vendido</h3>
+            <p id="productoPopular">Sin datos</p>
+        </div>
+
+    </div>
+
+    <div class="grafica-container">
+        <canvas id="graficaProductos"></canvas>
+    </div>
+
+</section>
+
+</section>
+
+        <div id="modalProducto" class="modal">
+
+        <div class="modal-content">
+
+        <h2>Nuevo Producto</h2>
+
+        <input
+        type="text"
+        id="nombreProducto"
+        placeholder="Nombre del producto">
+
+        <input
+        type="number"
+        id="precioProducto"
+        placeholder="Precio">
+
+        <input
+        type="number"
+        id="stockProducto"
+        placeholder="Stock">
+
+        <div class="modal-buttons">
+
+            <button
+            class="btn-guardar"
+            onclick="guardarProducto()">
+
+                Guardar
+
+            </button>
+
+            <button
+            class="btn-cancelar"
+            onclick="cerrarModal()">
+
+                Cancelar
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+    <!-- VENTA -->
+
+    <aside class="sale" id="panelVenta">
+
+        <h2>Ventas</h2>
+
+        <select id="tipoCliente">
+
+            <option>Cliente Regular</option>
+            <option>Cliente Resgistrado</option>
+
+
+
+        </select>
+
+        <div class="empty">
+
+            <i class="fa-solid fa-cart-shopping"></i>
+
+            <p>
+                Aquí aparecerán
+                los productos
+            </p>
+
+        </div>
+
+        <div id="carrito"></div>
+
+        <div class="footer">
+
+    <h3>Total: $<span id="total">0</span></h3>
+
+    <div class="botones">
+
+        <button class="btn-vender" onclick="vender()">
+            Vender
+        </button>
+
+        <button class="btn-cancelar" onclick="cancelarVenta()">
+            Cancelar
+        </button>
+
+    </div>
+
+</div>
+
+    </aside>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="CodeInicio.js"></script>
+
+</body>
+</html>
