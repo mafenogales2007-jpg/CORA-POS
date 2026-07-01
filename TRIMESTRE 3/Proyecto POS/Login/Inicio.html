@@ -12,7 +12,7 @@
 
 <div class="pos">
 
-    <!-- Parte izquierda -->
+<!-- Parte izquierda -->
 
     <aside class="sidebar">
 
@@ -42,6 +42,15 @@
         <i class="fa-solid fa-chart-column"></i>
     </li>
 
+    <li onclick="mostrarProveedores()" title="Proveedores">
+        <i class="fa-solid fa-calendar-days"></i>
+    </li>
+
+    <li onclick="mostrarCompras()" title="Compras">
+        <i class="fa-solid fa-truck"></i>
+    </li>
+
+
 </ul>
 
     </aside>
@@ -53,11 +62,7 @@
 
     <div class="search" id="busqueda">
 
-        <input
-        type="text"
-        id="buscar"
-        placeholder="Buscar productos"
-        onkeyup="buscarProducto()">
+        <input type="text" id="buscar" placeholder="Buscar productos" onkeyup="buscarProducto()">
 
     </div>
 
@@ -75,120 +80,50 @@
 
 </section>
 
-<!-- Inventario -->
+<div id="modalPago" class="modal">
 
-<section
-class="products"
-id="inventario-section"
-style="display:none;">
+    <div class="modal-content">
 
-    <h2>Inventario</h2>
+        <h2>Pago de la Venta</h2>
 
-    <table id="listaInventario">
+        <label>Método de pago</label>
 
-        <thead>
-            <tr>
-                <th>Producto</th>
-                <th>Precio</th>
-                <th>Stock</th>
-                <th>Estado</th>
-            </tr>
-        </thead>
+        <select id="metodoPago" onchange="cambiarMetodoPago()">
 
-        <tbody></tbody>
+            <option value="efectivo">
+                💵 Efectivo
+            </option>
 
-    </table>
+        </select>
 
-</section>
+        <div id="pagoEfectivo">
 
-<!-- REPORTES -->
+            <label>Total de la venta</label>
 
-<section
-class="products"
-id="reportes-section"
-style="display:none;">
+            <input type="text" id="totalVenta" readonly>
 
-    <h2>Registro de Ventas</h2>
+            <label>Dinero recibido</label>
 
-    <table id="tablaVentas">
+            <input type="number"  id="dineroCliente" placeholder="Ingrese el dinero" oninput="calcularCambio()">
 
-        <thead>
-            <tr>
-                <th>Cliente</th>
-                <th>Fecha</th>
-                <th>Total</th>
-            </tr>
-        </thead>
+            <label>Cambio</label>
 
-        <tbody></tbody>
-
-    </table>
-
-    <canvas id="graficaProductos"></canvas>
-
-    <section
-class="products"
-id="reportes-section"
-style="display:none;">
-
-    <h2>Estadísticas de Ventas</h2>
-
-    <div class="dashboard-reportes">
-
-        <div class="card-reporte">
-            <h3>Total de Ventas</h3>
-            <p id="totalVentas">0</p>
+            <input type="text" id="cambio" readonly>
         </div>
-
-        <div class="card-reporte">
-            <h3>Producto Más Vendido</h3>
-            <p id="productoPopular">Sin datos</p>
-        </div>
-
-    </div>
-
-    <div class="grafica-container">
-        <canvas id="graficaProductos"></canvas>
-    </div>
-
-</section>
-
-</section>
-
-        <div id="modalProducto" class="modal">
-
-        <div class="modal-content">
-
-        <h2>Nuevo Producto</h2>
-
-        <input
-        type="text"
-        id="nombreProducto"
-        placeholder="Nombre del producto">
-
-        <input
-        type="number"
-        id="precioProducto"
-        placeholder="Precio">
-
-        <input
-        type="number"
-        id="stockProducto"
-        placeholder="Stock">
 
         <div class="modal-buttons">
 
             <button
-            class="btn-guardar"
-            onclick="guardarProducto()">
+                class="btn-guardar"
+                onclick="vender()">
 
-                Guardar
+                Confirmar Venta
 
             </button>
 
             <button
-            class="btn-cancelar"
-            onclick="cerrarModal()">
+                class="btn-cancelar"
+                onclick="cerrarModalPago()">
 
                 Cancelar
 
@@ -200,55 +135,314 @@ style="display:none;">
 
 </div>
 
-    <!-- VENTA -->
+<!-- Inventario -->
 
-    <aside class="sale" id="panelVenta">
+<section class="products" id="inventario-section" style="display:none;">
+    <h2>Inventario</h2>
 
-        <h2>Ventas</h2>
+    <table id="listaInventario">
 
-        <select id="tipoCliente">
+        <thead>
+            <tr>
+                <th>Producto</th>
+                <th>Categoria</th>
+                <th>Precio</th>
+                <th>Stock</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
 
-            <option>Cliente Regular</option>
-            <option>Cliente Resgistrado</option>
+        <tbody></tbody>
 
+    </table>
 
+</section>
 
-        </select>
+<!-- Reportes -->
 
-        <div class="empty">
+<section class="products" id="reportes-section" style="display:none;">
 
-            <i class="fa-solid fa-cart-shopping"></i>
+    <div class="reportes-container">
 
-            <p>
-                Aquí aparecerán
-                los productos
-            </p>
+        <div class="tabla-reportes">
+
+            <h2>Registro de Ventas</h2>
+
+            <table id="tablaVentas">
+
+                <thead>
+                    <tr>
+                        <th>Cliente</th>
+                        <th>Fecha</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+
+                <tbody></tbody>
+
+            </table>
 
         </div>
 
-        <div id="carrito"></div>
+        <div class="panel-estadisticas">
 
-        <div class="footer">
+            <div class="card-reporte">
 
-    <h3>Total: $<span id="total">0</span></h3>
+                <h3>Total de Ventas</h3>
 
-    <div class="botones">
+                <p id="totalVentas">0</p>
 
-        <button class="btn-vender" onclick="vender()">
-            Vender
+            </div>
+
+            <div class="card-reporte">
+
+                <h3>Producto Más Vendido</h3>
+
+                <p id="productoPopular">
+                    Sin datos
+                </p>
+
+            </div>
+
+            <div class="grafica-card">
+
+                <h3>Graficas de Ventas</h3>
+
+                <canvas id="graficaProductos"></canvas>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+<!-- Modales -->
+
+<section class="products" id="proveedores-section" style="display:none;">
+
+    <h2>Proveedores</h2>
+
+    <div class="search">
+        <input type="text" id="buscarProveedor" placeholder="Buscar proveedores">
+
+        <button onclick="abrirModalProveedor()">
+            Agregar Proveedor
+        </button>
+    </div>
+
+    <table id="tablaProveedores">
+        <thead>
+            <tr>
+                <th>Empresa</th>
+                <th>Teléfono</th>
+                <th>Correo</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+
+        <tbody></tbody>
+    </table>
+
+</section>
+
+<section class="products" id="compras-section" style="display:none;">
+
+    <h2>Compras</h2>
+
+    <div class="search">
+
+        <input type="text" id="buscarCompra" placeholder="Buscar compra">
+
+        <button onclick="abrirModalCompra()">
+            Agregar Compra
         </button>
 
-        <button class="btn-cancelar" onclick="cancelarVenta()">
-            Cancelar
-        </button>
+    </div>
+
+    <table id="tablaCompras">
+
+        <thead>
+
+            <tr>
+                <th>Codigo</th>
+                <th>Proveedor</th>
+                <th>Producto</th>
+                <th>Cantidad</th>
+                <th>Total</th>
+                <th>Fecha</th>
+                <th>Acciones</th>
+
+            </tr>
+
+        </thead>
+
+        <tbody></tbody>
+
+    </table>
+
+</section>
+
+<!-- modal proveedor -->
+
+<div id="modalProveedor" class="modal">
+
+    <div class="modal-content">
+
+        <h2>Nuevo Proveedor</h2>
+
+        <input type="text" id="nombreProveedor" placeholder="Nombre de la empresa">
+        <input type="text" id="telefonoProveedor" placeholder="Teléfono" maxlength="10" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+        <input type="email" id="correoProveedor" placeholder="Correo">
+
+        <div class="modal-buttons">
+
+            <button class="btn-guardar" onclick="guardarProveedor()">
+                Guardar
+            </button>
+
+            <button class="btn-cancelar" onclick="cerrarModalProveedor()">
+                Cancelar
+            </button>
+
+        </div>
 
     </div>
 
 </div>
 
-    </aside>
+
+<div id="modalProducto" class="modal">
+
+        <div class="modal-content">
+
+        <h2>Nuevo Producto</h2>
+
+        <input type="text" id="nombreProducto" placeholder="Nombre del producto">
+        <input type="number" id="precioProducto" placeholder="Precio">
+        <input type="number" id="stockProducto" placeholder="Stock">
+
+<select id="categoriaProducto">
+
+    <option value="">Seleccione una categoría</option>
+    <option>Bebidas</option>
+    <option>Snacks</option>
+    <option>Dulces</option>
+    <option>Lácteos</option>
+    <option>Aseo</option>
+    <option>Otros</option>
+
+</select>
+
+        <div class="modal-buttons">
+
+            <button class="btn-guardar" onclick="guardarProducto()">
+                Guardar
+            </button>
+
+            <button class="btn-cancelar" onclick="cerrarModal()">
+                Cancelar
+            </button>
+
+        </div>
+
+    </div>
 
 </div>
+
+<!-- modal compra -->
+
+<div id="modalCompra" class="modal">
+    <div class="modal-content">
+        <h2>Nueva Compra</h2>
+
+        <select id="proveedorCompra">
+            <option value="">Seleccione un proveedor</option>
+        </select>
+        <input type="text" id="productoCompra" placeholder="Producto">
+        <input type="number" id="cantidadCompra" placeholder="Cantidad">
+        <input type="number" id="totalCompra" placeholder="Total">
+
+        <div class="modal-buttons">
+
+            <button class="btn-guardar" onclick="guardarCompra()">
+                Guardar
+            </button>
+
+            <button class="btn-cancelar" onclick="cerrarModalCompra()">
+                Cancelar
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Venta -->
+
+    <aside class="sale" id="panelVenta">
+
+    <div class="header-ventas">
+
+        <h2>Ventas</h2>
+
+        <div class="menu-container">
+
+            <button class="btn-menu" onclick="toggleMenu()">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+
+            <div id="menuVentas" class="menu-ventas">
+
+                <div onclick="registrarCliente()">
+                    Registrar Cliente
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <select id="tipoCliente">
+
+        <option>Cliente Regular</option>
+        <option>Cliente Registrado</option>
+
+    </select>
+
+    <div class="empty">
+
+        <i class="fa-solid fa-cart-shopping"></i>
+
+        <p>
+            Aquí aparecerán los productos
+        </p>
+
+    </div>
+
+    <div id="carrito"></div>
+
+    <div class="footer">
+
+        <h3>Total: $<span id="total">0</span></h3>
+
+        <div class="botones">
+
+            <button class="btn-vender" onclick="abrirModalPago()">
+                Vender
+            </button>
+
+            <button class="btn-cancelar" onclick="cancelarVenta()">
+                Cancelar
+            </button>
+
+        </div>
+
+    </div>
+
+</aside>
+
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="CodeInicio.js"></script>

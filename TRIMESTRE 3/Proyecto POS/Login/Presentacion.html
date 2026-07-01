@@ -61,7 +61,7 @@
 
         </div>
 
-        <!-- DERECHA -->
+        <!-- derecha -->
     <div class="container">
         <div class="right">
 
@@ -71,7 +71,7 @@
                 Ingresa tu correo electrónico y contraseña para acceder a tu cuenta
             </p>
 
-            <!-- EMAIL -->
+            <!-- Correo Electrónico -->
 
             <div class="input-group">
 
@@ -81,13 +81,13 @@
 
                     <i class="fa-regular fa-envelope"></i>
 
-                    <input type="email" placeholder="usuario@cora-pos.com">
+                    <input type="email" id="correo" placeholder="usuario@cora-pos.com">
 
                 </div>
 
             </div>
 
-            <!-- PASSWORD -->
+            <!-- Password -->
 
             <div class="input-group">
 
@@ -97,13 +97,15 @@
 
                     <i class="fa-solid fa-lock"></i>
 
-                    <input type="password" placeholder="********">
+                    <input type="password" id="password" placeholder="Contraseña">
+
+                    <i class="fa-solid fa-eye" id="iconoPassword" onclick="mostrarPassword()"></i>
 
                 </div>
 
             </div>
 
-            <!-- OPCIONES -->
+            <!-- opciones -->
 
             <div class="options">
 
@@ -118,13 +120,13 @@
 
             </div>
 
-            <!-- BOTÓN -->
+            <!-- Botón iniciar sesión -->
 
-            <button class="login-btn" onclick="window.location.href='Inicio.html'">
+            <button class="login-btn" onclick="login()">
                 Iniciar Sesión
             </button>
 
-            <!-- USUARIOS DEMO -->
+            <!-- Demostración -->   
 
             <div class="demo">
 
@@ -158,7 +160,7 @@
 
     </div>
 
- <script src="Code.js"></script>
+ <script src="CodeLogin.js"></script>
 
 </body>
 </html>

@@ -647,3 +647,313 @@ tbody tr:hover{
     border-radius:15px;
     box-shadow:0 5px 15px rgba(0,0,0,.08);
 }
+
+.btn-editar{
+    background:#2563eb;
+    color:white;
+    border:none;
+    padding:8px 12px;
+    border-radius:8px;
+    cursor:pointer;
+    margin-right:5px;
+}
+
+.btn-eliminar{
+    background:#ef4444;
+    color:white;
+    border:none;
+    padding:8px 12px;
+    border-radius:8px;
+    cursor:pointer;
+}
+
+.btn-editar:hover{
+    background:#1d4ed8;
+}
+
+.btn-eliminar:hover{
+    background:#dc2626;
+}
+
+.reportes-container{
+    display:flex;
+    gap:25px;
+}
+
+.tabla-reportes{
+    flex:2;
+}
+
+.panel-estadisticas{
+    width:350px;
+    display:flex;
+    flex-direction:column;
+    gap:15px;
+}
+
+.card-reporte{
+    background:white;
+    padding:20px;
+    border-radius:15px;
+    text-align:center;
+    box-shadow:0 5px 15px rgba(0,0,0,.08);
+}
+
+/* Columna Fecha */
+
+#tablaVentas th:nth-child(2),
+#tablaVentas td:nth-child(2),
+
+#tablaCompras th:nth-child(6),
+#tablaCompras td:nth-child(6){
+
+    width: 190px;
+    white-space: nowrap;
+
+}
+
+.card-reporte h3{
+    color:#6b7280;
+    font-size:14px;
+}
+
+.card-reporte p{
+    margin-top:10px;
+    font-size:28px;
+    font-weight:bold;
+    color:#4f46e5;
+}
+
+.grafica-card{
+    background:white;
+    padding:20px;
+    border-radius:15px;
+    box-shadow:0 5px 15px rgba(0,0,0,.08);
+}
+
+.grafica-card h3{
+    text-align:center;
+    margin-bottom:15px;
+    color:#4f46e5;
+}
+
+#graficaProductos{
+    width:100% !important;
+    height:220px !important;
+}
+
+
+/* Venta */
+
+.header-ventas{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:20px;
+}
+
+.menu-container{
+    position:relative;
+}
+
+.btn-menu{
+    border:none;
+    background:none;
+    font-size:20px;
+    cursor:pointer;
+    color:#4f46e5;
+    position:relative;
+    top:-8px;
+}
+
+.menu-ventas{
+    display:none;
+    position:absolute;
+    top:35px;
+    right:0;
+    width:180px;
+    background:white;
+    border-radius:10px;
+    box-shadow:0 5px 15px rgba(0,0,0,.15);
+    overflow:hidden;
+    z-index:100;
+}
+
+.menu-ventas div{
+    padding:12px;
+    cursor:pointer;
+}
+
+.menu-ventas div:hover{
+    background:#f3f0ff;
+}
+
+/* categóricas */
+
+.modal-content select{
+    padding:12px;
+    border:1px solid #ddd;
+    border-radius:10px;
+    outline:none;
+    width:100%;
+    background:white;
+    color:#6b7280;
+    font-size:14px;
+}
+
+.modal-content input,
+.modal-content select{
+    padding:12px;
+    border:1px solid #ddd;
+    border-radius:10px;
+    outline:none;
+    width:100%;
+}
+
+/* Proveedores */
+
+#tablaProveedores{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:20px;
+    background:white;
+    border-radius:15px;
+    overflow:hidden;
+    box-shadow:0 3px 10px rgba(0,0,0,.08);
+}
+
+#tablaProveedores th{
+    background:#f8fafc;
+    padding:15px;
+    text-align:left;
+    border-bottom:1px solid #e5e7eb;
+}
+
+#tablaProveedores td{
+    padding:15px;
+    border-bottom:1px solid #e5e7eb;
+}
+
+#tablaProveedores tr:hover{
+    background:#f5f3ff;
+}
+
+/* Buscador proveedores */
+
+.proveedores-header{
+    display:flex;
+    gap:15px;
+    margin-bottom:20px;
+}
+
+.proveedores-header input{
+    flex:1;
+}
+
+/* Modal Pago */
+
+#pagoEfectivo{
+
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+
+}
+
+#pagoEfectivo label{
+
+    font-weight:bold;
+    color:#444;
+
+}
+
+#totalVenta,
+#cambio{
+
+    background:#f5f5f5;
+    font-weight:bold;
+
+}
+
+/* Botones de editar y eliminar proveedor */
+
+.btn-editar-proveedor,
+.btn-eliminar-proveedor{
+    border: none;
+    padding: 8px 14px;
+    border-radius: 8px;
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: .3s;
+}
+
+.btn-editar-proveedor{
+    background: linear-gradient(135deg,#2563eb,#9333ea);
+}
+
+.btn-editar-proveedor:hover{
+    transform: translateY(-2px);
+    box-shadow: 0 5px 12px rgba(37,99,235,.3);
+}
+
+.btn-eliminar-proveedor{
+    background: linear-gradient(135deg,#ef4444,#a52a2a);
+}
+
+.btn-eliminar-proveedor:hover{
+    transform: translateY(-2px);
+    box-shadow: 0 5px 12px rgba(239,68,68,.3);
+}
+
+/* Separación entre botones */
+
+td .btn-editar-proveedor{
+    margin-right:8px;
+}
+
+/* Compras */
+
+#tablaCompras{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:20px;
+    background:white;
+    border-radius:15px;
+    overflow:hidden;
+    box-shadow:0 3px 10px rgba(0,0,0,.08);
+}
+
+#tablaCompras th{
+    background:#f8fafc;
+    padding:15px;
+    text-align:left;
+    border-bottom:1px solid #e5e7eb;
+}
+
+#tablaCompras td{
+    padding:15px;
+    border-bottom:1px solid #e5e7eb;
+}
+
+#tablaCompras tr:hover{
+    background:#f5f3ff;
+}
+
+/* Títulos */
+
+#compras-section,
+#proveedores-section{
+    flex:1;
+}
+
+#proveedores-section h2,
+#compras-section h2{
+    margin-bottom:20px;
+    color:#4f46e5;
+}
+
+
+
+
