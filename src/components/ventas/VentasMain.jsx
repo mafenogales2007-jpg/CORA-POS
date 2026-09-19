@@ -42,7 +42,7 @@ export default function VentasMain() {
 
   return (
     <div style={{ backgroundColor: '#f8fafc', minHeight: '100vh', padding: '1.25rem', boxSizing: 'border-box', fontFamily: 'system-ui, sans-serif' }}>
-      {/* Grid Principal sin el doble header */}
+      {/* Grid Principal */}
       <div style={{
         display: 'grid',
         gridTemplateColumns: '1fr 390px',
@@ -62,14 +62,17 @@ export default function VentasMain() {
         />
       </div>
 
+      {/* AQUÍ ESTABA EL ERROR: Usaba 'modalAbierto' en lugar de 'mostrarModalCobro' */}
       {mostrarModalCobro && (
         <ModalCobro
           carrito={carrito}
           total={total}
-          onCerrar={() => setMostrarModalCobro(false)}
-          onVentaExitosa={() => {
-            vaciarCarrito();
+          onCerrar={() => {
             setMostrarModalCobro(false);
+            setCarrito([]); // Vaciamos el carrito al finalizar la venta y cerrar
+          }}
+          onVentaExitosa={() => {
+            // Aquí puedes dejarlo vacío o realizar acciones de fondo
           }}
         />
       )}

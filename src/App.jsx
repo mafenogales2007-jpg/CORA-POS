@@ -1,104 +1,103 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate, Link, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
 import VentasMain from './components/ventas/VentasMain';
+import './css/ventas.css';
 
-// Mocks temporales
-const InventarioMock = () => <div style={{ padding: '2rem' }}><h2>Módulo de Inventario (En desarrollo)</h2></div>;
-const ReportesMock = () => <div style={{ padding: '2rem' }}><h2>Módulo de Reportes (En desarrollo)</h2></div>;
-const LoginMock = () => <div style={{ padding: '2rem' }}><h2>Módulo de Login (Pendiente por conectar)</h2></div>;
-
-function NavigationMenu() {
+function Sidebar() {
   const location = useLocation();
 
+  // Se quitó 'Login' del menú lateral
   const enlaces = [
-    { path: '/ventas', label: 'Ventas', icon: '🛒' },
-    { path: '/inventario', label: 'Inventario', icon: '📦' },
-    { path: '/reportes', label: 'Reportes', icon: '📊' },
-    { path: '/login', label: 'Login', icon: '🔑' },
+    {
+      path: '/ventas',
+      label: 'Ventas',
+      icon: (
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="8" cy="21" r="1"/>
+          <circle cx="19" cy="21" r="1"/>
+          <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/>
+        </svg>
+      )
+    },
+    {
+      path: '/inventario',
+      label: 'Inventario',
+      icon: (
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="m7.5 4.27 9 5.15"/>
+          <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
+          <path d="m3.3 7 8.7 5 8.7-5"/>
+          <path d="M12 22V12"/>
+        </svg>
+      )
+    },
+    {
+      path: '/reportes',
+      label: 'Reportes',
+      icon: (
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M3 3v18h18"/>
+          <path d="M18 17V9"/>
+          <path d="M13 17V5"/>
+          <path d="M8 17v-3"/>
+        </svg>
+      )
+    }
   ];
 
   return (
-    <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-      {enlaces.map((item) => {
-        const activo = location.pathname === item.path;
-        return (
-          <li key={item.path}>
-            <Link
-              to={item.path}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.75rem',
-                padding: '0.75rem 1rem',
-                borderRadius: '8px',
-                color: activo ? '#ffffff' : '#94a3b8',
-                backgroundColor: activo ? '#06b6d4' : 'transparent',
-                fontWeight: activo ? '700' : '500',
-                textDecoration: 'none',
-                transition: 'all 0.2s ease'
-              }}
-            >
-              <span>{item.icon}</span>
-              <span>{item.label}</span>
-            </Link>
-          </li>
-        );
-      })}
-    </ul>
+    <aside className="sidebar-container">
+      <div>
+        {/* Arriba: Iniciales CP */}
+        <div className="sidebar-logo" title="CORA POS">
+          CP
+        </div>
+
+        {/* Menú de navegación solo íconos */}
+        <nav className="sidebar-nav">
+          {enlaces.map((enlace) => {
+            const isActive = location.pathname === enlace.path || (enlace.path === '/ventas' && location.pathname === '/');
+            return (
+              <Link
+                key={enlace.path}
+                to={enlace.path}
+                className={`sidebar-btn ${isActive ? 'active' : ''}`}
+                title={enlace.label}
+              >
+                {enlace.icon}
+              </Link>
+            );
+          })}
+        </nav>
+      </div>
+
+      {/* Abajo abajo: Perfil del usuario */}
+      <div className="sidebar-footer">
+        <button className="user-avatar" title="Perfil de Usuario">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+        </button>
+      </div>
+    </aside>
   );
 }
 
-export default function App() {
+function App() {
   return (
     <BrowserRouter>
-      <div style={{ display: 'flex', width: '100vw', height: '100vh', overflow: 'hidden', fontFamily: 'system-ui, sans-serif' }}>
-        {/* Barra Lateral Corregida */}
-        <aside style={{
-          width: '240px',
-          backgroundColor: '#0a3744',
-          display: 'flex',
-          flexDirection: 'column',
-          padding: '1rem',
-          boxSizing: 'border-box',
-          flexShrink: 0
-        }}>
-          {/* Brand Header CORA POS */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '2rem', padding: '0.5rem' }}>
-            <div style={{
-              backgroundColor: '#06b6d4',
-              color: '#ffffff',
-              width: '36px',
-              height: '36px',
-              borderRadius: '10px',
-              display: 'grid',
-              placeItems: 'center',
-              fontWeight: 'bold',
-              fontSize: '1.2rem',
-              boxShadow: '0 2px 8px rgba(6, 182, 212, 0.4)'
-            }}>
-              C
-            </div>
-            <h2 style={{ margin: 0, color: '#ffffff', fontSize: '1.25rem', fontWeight: '700', letterSpacing: '0.5px' }}>
-              CORA POS
-            </h2>
-          </div>
-
-          <nav style={{ flex: 1 }}>
-            <NavigationMenu />
-          </nav>
-        </aside>
-
-        {/* Vista principal (0 padding para encaje 100% exacto) */}
-        <main style={{ flex: 1, height: '100vh', backgroundColor: '#f8fafc', overflow: 'hidden' }}>
+      <div className="app-layout">
+        <Sidebar />
+        <div style={{ flex: 1, height: '100vh', overflow: 'hidden' }}>
           <Routes>
-            <Route path="/" element={<Navigate to="/ventas" replace />} />
             <Route path="/ventas" element={<VentasMain />} />
-            <Route path="/inventario" element={<InventarioMock />} />
-            <Route path="/reportes" element={<ReportesMock />} />
-            <Route path="/login" element={<LoginMock />} />
+            <Route path="/" element={<VentasMain />} />
           </Routes>
-        </main>
+        </div>
       </div>
     </BrowserRouter>
   );
 }
+
+export default App;
