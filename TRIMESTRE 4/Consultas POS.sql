@@ -22,6 +22,19 @@ INNER JOIN categoria c ON p.Categoria_idCategoria1 = c.idCategoria
 WHERE p.StockProductos <= 40
 ORDER BY p.StockProductos ASC;
 
+##Conocer cuáles son los clientes más frecuentes que aportan más ingresos al negocio mediante sus compras acumuladas.
+
+SELECT 
+    cl.DocumentoCliente,
+    CONCAT(cl.NombreCliente, ' ', cl.ApellidoCliente) AS NombreCompleto,
+    COUNT(v.idVentas) AS CantidadCompras,
+    SUM(v.TotalVentas) AS TotalGastado
+FROM cliente cl
+INNER JOIN ventas v ON cl.DocumentoCliente = v.Cliente_DocumentoCliente
+GROUP BY cl.DocumentoCliente, cl.NombreCliente, cl.ApellidoCliente
+ORDER BY TotalGastado DESC
+LIMIT 5;
+
 ##Evaluar qué categorías de productos tienen mayor salida y generan más valor en las transacciones de venta.
 
 SELECT 
