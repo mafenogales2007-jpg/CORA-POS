@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../../services/supabaseClient';
 import NuevoProductoModal from './NuevoProductoModal';
 
-export default function CatalogoProductos({ onAgregarProducto }) {
+export default function CatalogoProductos({ onAgregarProducto, keyUpdate, productoVendido }) {
   const [productos, setProductos] = useState([]);
   const [categorias, setCategorias] = useState([]);
   const [busqueda, setBusqueda] = useState('');
@@ -16,7 +16,8 @@ export default function CatalogoProductos({ onAgregarProducto }) {
   const [nuevaCategoria, setNuevaCategoria] = useState('');
   const [cargandoCat, setCargandoCat] = useState(false);
 
-  const cargarDatos = async () => {
+  // Carga inicial (solo la primera vez que abre la app)
+  const cargarDatosIniciales = async () => {
     setCargando(true);
     try {
       const { data: dataProductos } = await supabase.from('productos').select('*');
@@ -32,18 +33,41 @@ export default function CatalogoProductos({ onAgregarProducto }) {
   };
 
   useEffect(() => {
-    cargarDatos();
+    cargarDatosIniciales();
   }, []);
 
-  // Función para formatear el texto automáticamente (Primera letra en mayúscula)
+  // EFECTO CLAVE: Descuenta el stock localmente de forma instantánea sin mostrar "Cargando..."
+  useEffect(() => {
+    if (!productoVendido) return;
+
+    setProductos((prevProductos) =>
+      prevProductos.map((prod) => {
+        // Si el producto coincide con el que se vendió, restamos su cantidad
+        if (prod.id === productoVendido.id) {
+          const nuevoStock = Number(prod.stock || 0) - Number(productoVendido.cantidadVendida || 1);
+          return { ...prod, stock: nuevoStock < 0 ? 0 : nuevoStock };
+        }
+        return prod;
+      })
+    );
+  }, [productoVendido]);
+
+  // Si por alguna razón se fuerza una recarga general externa con keyUpdate
+  useEffect(() => {
+    if (keyUpdate) {
+      supabase.from('productos').select('*').then(({ data }) => {
+        if (data) setProductos(data);
+      });
+    }
+  }, [keyUpdate]);
+
   const formatearTexto = (texto) => {
     if (!texto) return '';
-    const limpio = texto.trimStart(); // Mantiene los espacios mientras escribes si es necesario, o usa trim()
+    const limpio = texto.trimStart();
     if (limpio.length === 0) return '';
     return limpio.charAt(0).toUpperCase() + limpio.slice(1).toLowerCase();
   };
 
-  // Función para guardar la nueva categoría en Supabase ya formateada
   const handleCrearCategoria = async (e) => {
     e.preventDefault();
     const nombreFormateado = formatearTexto(nuevaCategoria);
@@ -59,11 +83,8 @@ export default function CatalogoProductos({ onAgregarProducto }) {
 
       if (error) throw error;
 
-      // Actualizar la lista local de categorías y seleccionarla automáticamente
       setCategorias((prev) => [...prev, data]);
       setCategoriaSeleccionada(data.id);
-      
-      // Limpiar y cerrar modal
       setNuevaCategoria('');
       setMostrarModalCat(false);
     } catch (err) {
@@ -76,18 +97,12 @@ export default function CatalogoProductos({ onAgregarProducto }) {
 
   const eliminarProducto = async (e, id, nombre) => {
     e.stopPropagation();
-
     const confirmar = window.confirm(`¿Deseas eliminar la tarjeta de "${nombre}"?`);
     if (!confirmar) return;
 
     try {
       await supabase.from('detalle_ventas').delete().eq('producto_id', id);
-
-      const { error } = await supabase
-        .from('productos')
-        .delete()
-        .eq('id', id);
-
+      const { error } = await supabase.from('productos').delete().eq('id', id);
       if (error) throw error;
 
       setProductos((prev) => prev.filter((p) => p.id !== id));
@@ -114,15 +129,34 @@ export default function CatalogoProductos({ onAgregarProducto }) {
     });
   };
 
-  const productosFiltrados = productos.filter((prod) => {
-    const coincideTexto =
-      prod.nombre?.toLowerCase().includes(busqueda.toLowerCase()) ||
-      prod.codigo_barras?.includes(busqueda);
-    const coincideCategoria =
-      categoriaSeleccionada === 'todas' || prod.categoria_id === categoriaSeleccionada;
+  // Filtrado y Ordenamiento:
+  // 1. Filtra por texto y categoría.
+  // 2. Ordena poniendo de primeras los de poquito stock y al final los agotados.
+  const productosFiltrados = productos
+    .filter((prod) => {
+      const coincideTexto =
+        prod.nombre?.toLowerCase().includes(busqueda.toLowerCase()) ||
+        prod.codigo_barras?.includes(busqueda);
+      const coincideCategoria =
+        categoriaSeleccionada === 'todas' || prod.categoria_id === categoriaSeleccionada;
 
-    return coincideTexto && coincideCategoria;
-  });
+      return coincideTexto && coincideCategoria;
+    })
+    .sort((a, b) => {
+      const stockA = Number(a.stock || 0);
+      const stockB = Number(b.stock || 0);
+
+      const esAgotadoA = stockA <= 0;
+      const esAgotadoB = stockB <= 0;
+
+      // Si A está agotado y B no, A va después (+1)
+      if (esAgotadoA && !esAgotadoB) return 1;
+      // Si B está agotado y A no, B va después (-1)
+      if (!esAgotadoA && esAgotadoB) return -1;
+
+      // Si ambos tienen stock o ambos están agotados, ordenamos de menor a mayor stock (poquito stock primero)
+      return stockA - stockB;
+    });
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', height: '100%', overflow: 'hidden' }}>
@@ -167,7 +201,7 @@ export default function CatalogoProductos({ onAgregarProducto }) {
         </button>
       </div>
 
-      {/* CHIPS DE CATEGORÍAS + BOTÓN DE AÑADIR */}
+      {/* CHIPS DE CATEGORÍAS */}
       <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.25rem', alignItems: 'center' }}>
         <button
           onClick={() => setCategoriaSeleccionada('todas')}
@@ -187,7 +221,6 @@ export default function CatalogoProductos({ onAgregarProducto }) {
         </button>
 
         {categorias.map((cat) => {
-          // Asegura visualmente que la primera letra siempre esté en mayúscula por si quedó minúscula en la BD
           const nombreVisual = cat.nombre ? cat.nombre.charAt(0).toUpperCase() + cat.nombre.slice(1) : '';
           return (
             <button
@@ -210,7 +243,6 @@ export default function CatalogoProductos({ onAgregarProducto }) {
           );
         })}
 
-        {/* Botón de nueva categoría */}
         <button
           onClick={() => setMostrarModalCat(true)}
           title="Crear nueva categoría"
@@ -239,24 +271,16 @@ export default function CatalogoProductos({ onAgregarProducto }) {
         <p style={{ color: '#64748b', textAlign: 'center', marginTop: '2rem' }}>Cargando catálogo...</p>
       ) : productosFiltrados.length === 0 ? (
         <div style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flex: 1,
-          backgroundColor: '#ffffff',
-          borderRadius: '16px',
-          border: '1px dashed #cbd5e1',
-          padding: '3rem',
-          textAlign: 'center',
-          margin: '0.5rem 0'
+          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          flex: 1, backgroundColor: '#ffffff', borderRadius: '16px', border: '1px dashed #cbd5e1',
+          padding: '3rem', textAlign: 'center', margin: '0.5rem 0'
         }}>
           <div style={{ fontSize: '3rem', marginBottom: '0.75rem' }}>📦</div>
           <h3 style={{ margin: '0 0 0.35rem 0', color: '#0f172a', fontSize: '1.1rem', fontWeight: '700' }}>
             Catálogo vacío
           </h3>
           <p style={{ margin: 0, color: '#64748b', fontSize: '0.875rem', maxWidth: '300px' }}>
-            No hay productos disponibles en esta categoría o con este filtro. Haz clic en <strong>"+ Nuevo"</strong> para agregar uno.
+            No hay productos disponibles en esta categoría o con este filtro.
           </p>
         </div>
       ) : (
@@ -277,13 +301,14 @@ export default function CatalogoProductos({ onAgregarProducto }) {
             return (
               <div
                 key={prod.id}
-                onClick={() => onAgregarProducto(prod)}
+                onClick={() => !estaAgotado && onAgregarProducto(prod)}
                 style={{
-                  backgroundColor: '#ffffff',
+                  backgroundColor: estaAgotado ? '#f8fafc' : '#ffffff',
                   border: estaAgotado ? '1px solid #e2e8f0' : '2px solid #06b6d4',
                   borderRadius: '16px',
                   padding: '0.85rem',
-                  cursor: 'pointer',
+                  cursor: estaAgotado ? 'not-allowed' : 'pointer',
+                  opacity: estaAgotado ? 0.65 : 1,
                   display: 'flex',
                   flexDirection: 'column',
                   justifyContent: 'space-between',
@@ -297,50 +322,33 @@ export default function CatalogoProductos({ onAgregarProducto }) {
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 5, marginBottom: '0.25rem' }}>
                   <div style={{
-                    backgroundColor: estaAgotado ? '#f87171' : '#1e293b',
+                    backgroundColor: estaAgotado ? '#ef4444' : '#1e293b',
                     color: '#ffffff',
                     fontSize: '0.6rem',
                     fontWeight: '800',
                     padding: '0.2rem 0.5rem',
                     borderRadius: '10px',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.3px'
+                    textTransform: 'uppercase'
                   }}>
                     {estaAgotado ? 'AGOTADO' : `${stockNum} EN VENTA`}
                   </div>
 
                   <span
                     onClick={(e) => toggleFavorito(e, prod.id)}
-                    title={esFavorito ? "Quitar de favoritos" : "Marcar como favorito"}
-                    style={{
-                      color: esFavorito ? '#eab308' : '#cbd5e1',
-                      fontSize: '1.25rem',
-                      cursor: 'pointer',
-                      userSelect: 'none',
-                      lineHeight: 1
-                    }}
+                    style={{ color: esFavorito ? '#eab308' : '#cbd5e1', fontSize: '1.25rem', cursor: 'pointer', userSelect: 'none', lineHeight: 1 }}
                   >
                     {esFavorito ? '★' : '☆'}
                   </span>
                 </div>
 
                 <div style={{
-                  height: '95px',
-                  width: '100%',
-                  borderRadius: '10px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
+                  height: '95px', width: '100%', borderRadius: '10px', display: 'flex',
+                  alignItems: 'center', justifyContent: 'center',
                   backgroundColor: prod.imagen_url ? '#f8fafc' : '#8fad7a',
-                  overflow: 'hidden',
-                  margin: '0.25rem 0'
+                  overflow: 'hidden', margin: '0.25rem 0'
                 }}>
                   {prod.imagen_url ? (
-                    <img
-                      src={prod.imagen_url}
-                      alt={prod.nombre}
-                      style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '4px' }}
-                    />
+                    <img src={prod.imagen_url} alt={prod.nombre} style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '4px' }} />
                   ) : (
                     <span style={{ color: '#ffffff', fontSize: '2.2rem', fontWeight: 'bold' }}>
                       {prod.nombre?.charAt(0).toUpperCase()}
@@ -348,17 +356,10 @@ export default function CatalogoProductos({ onAgregarProducto }) {
                   )}
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', position: 'relative' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                   <h4 style={{
-                    margin: '0 0 2px 0',
-                    fontSize: '0.85rem',
-                    color: '#1e293b',
-                    fontWeight: '700',
-                    lineHeight: '1.15',
-                    display: '-webkit-box',
-                    WebkitLineClamp: 1,
-                    WebkitBoxOrient: 'vertical',
-                    overflow: 'hidden'
+                    margin: '0 0 2px 0', fontSize: '0.85rem', color: '#1e293b', fontWeight: '700',
+                    display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden'
                   }}>
                     {prod.nombre}
                   </h4>
@@ -368,111 +369,67 @@ export default function CatalogoProductos({ onAgregarProducto }) {
                       <div style={{ color: '#0f172a', fontWeight: '800', fontSize: '1.05rem', lineHeight: '1.1' }}>
                         $ {Number(prod.precio || 0).toLocaleString('es-CO')}
                       </div>
-                      <div style={{
-                        color: estaAgotado ? '#f87171' : '#64748b',
-                        fontSize: '0.7rem',
-                        fontWeight: '600',
-                        marginTop: '1px'
-                      }}>
-                        {stockNum} {unidadLabel}
+                      <div style={{ color: estaAgotado ? '#ef4444' : '#64748b', fontSize: '0.7rem', fontWeight: '600', marginTop: '1px' }}>
+                        {estaAgotado ? 'Sin stock' : `${stockNum} ${unidadLabel}`}
                       </div>
                     </div>
 
                     <button
                       onClick={(e) => eliminarProducto(e, prod.id, prod.nombre)}
-                      title="Eliminar producto"
                       style={{
-                        backgroundColor: '#fee2e2',
-                        color: '#ef4444',
-                        border: 'none',
-                        borderRadius: '50%',
-                        width: '22px',
-                        height: '22px',
-                        fontSize: '0.65rem',
-                        fontWeight: 'bold',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0
+                        backgroundColor: '#fee2e2', color: '#ef4444', border: 'none', borderRadius: '50%',
+                        width: '22px', height: '22px', fontSize: '0.65rem', fontWeight: 'bold', cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center'
                       }}
                     >
                       ✕
                     </button>
                   </div>
                 </div>
-
               </div>
             );
           })}
         </div>
       )}
 
-      {/* MODAL DE NUEVA CATEGORÍA */}
+      {/* MODAL NUEVA CATEGORÍA */}
       {mostrarModalCat && (
         <div style={{
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
           backgroundColor: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(6px)',
           display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10000, padding: '1rem'
         }}>
-          <div style={{ backgroundColor: '#ffffff', padding: '2rem', borderRadius: '20px', width: '100%', maxWidth: '380px', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)' }}>
+          <div style={{ backgroundColor: '#ffffff', padding: '2rem', borderRadius: '20px', width: '100%', maxWidth: '380px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-              <h3 style={{ margin: 0, color: '#0F172A', fontSize: '1.2rem', fontWeight: '800' }}>
-                Nueva Categoría
-              </h3>
-              <button
-                onClick={() => setMostrarModalCat(false)}
-                style={{ background: 'transparent', border: 'none', fontSize: '1.1rem', color: '#94a3b8', cursor: 'pointer' }}
-              >
-                ✕
-              </button>
+              <h3 style={{ margin: 0, color: '#0F172A', fontSize: '1.2rem', fontWeight: '800' }}>Nueva Categoría</h3>
+              <button onClick={() => setMostrarModalCat(false)} style={{ background: 'transparent', border: 'none', fontSize: '1.1rem', cursor: 'pointer' }}>✕</button>
             </div>
-
             <form onSubmit={handleCrearCategoria}>
-              <div style={{ marginBottom: '1.25rem' }}>
-                <label style={{ display: 'block', fontWeight: '700', fontSize: '0.85rem', color: '#334155', marginBottom: '0.4rem' }}>
-                  Nombre de la categoría
-                </label>
-                <input
-                  type="text"
-                  placeholder="Ej. Aseo, Lácteos, Bebidas..."
-                  value={nuevaCategoria}
-                  onChange={(e) => setNuevaCategoria(formatearTexto(e.target.value))}
-                  autoFocus
-                  style={{ width: '100%', padding: '0.75rem', fontSize: '0.95rem', borderRadius: '8px', border: '1px solid #cbd5e1', boxSizing: 'border-box', outline: 'none', backgroundColor: '#fff', color: '#0f172a' }}
-                />
-              </div>
-
+              <input
+                type="text"
+                placeholder="Ej. Aseo, Lácteos..."
+                value={nuevaCategoria}
+                onChange={(e) => setNuevaCategoria(formatearTexto(e.target.value))}
+                autoFocus
+                style={{ width: '100%', padding: '0.75rem', fontSize: '0.95rem', borderRadius: '8px', border: '1px solid #cbd5e1', marginBottom: '1.25rem', boxSizing: 'border-box' }}
+              />
               <div style={{ display: 'flex', gap: '0.75rem' }}>
-                <button
-                  type="button"
-                  onClick={() => setMostrarModalCat(false)}
-                  style={{ flex: 1, padding: '0.75rem', borderRadius: '10px', border: '1px solid #cbd5e1', background: '#ffffff', color: '#475569', fontWeight: '600', cursor: 'pointer' }}
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  disabled={cargandoCat}
-                  style={{ flex: 1.5, padding: '0.75rem', borderRadius: '10px', border: 'none', background: '#164e63', color: '#ffffff', fontWeight: '700', cursor: 'pointer', opacity: cargandoCat ? 0.7 : 1 }}
-                >
-                  {cargandoCat ? 'Guardando...' : 'Guardar'}
-                </button>
+                <button type="button" onClick={() => setMostrarModalCat(false)} style={{ flex: 1, padding: '0.75rem', borderRadius: '10px', border: '1px solid #cbd5e1', background: '#fff', cursor: 'pointer' }}>Cancelar</button>
+                <button type="submit" disabled={cargandoCat} style={{ flex: 1.5, padding: '0.75rem', borderRadius: '10px', border: 'none', background: '#164e63', color: '#fff', cursor: 'pointer' }}>Guardar</button>
               </div>
             </form>
           </div>
         </div>
       )}
 
-      {/* MODAL DE NUEVO PRODUCTO */}
+      {/* MODAL NUEVO PRODUCTO */}
       {mostrarModalNuevo && (
         <NuevoProductoModal
           categorias={categorias}
-          onProductoCreado={cargarDatos}
+          onProductoCreado={cargarDatosIniciales}
           onCerrar={() => setMostrarModalNuevo(false)}
         />
       )}
-
     </div>
   );
 }
