@@ -162,13 +162,6 @@ export default function ModalCobro({ carrito, total, onCerrar, onVentaExitosa, o
               <h2 style={{ margin: 0, color: '#0F172A', fontSize: '1.25rem', fontWeight: '800' }}>
                 Finalizar Cobro
               </h2>
-              <button
-                type="button"
-                onClick={handleCancelar}
-                style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '1.2rem', color: '#94a3b8', padding: '0.2rem' }}
-              >
-                ✕
-              </button>
             </div>
 
             <div style={{ backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', padding: '1.1rem 1.25rem', borderRadius: '12px', marginBottom: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

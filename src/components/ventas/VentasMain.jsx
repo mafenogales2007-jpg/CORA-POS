@@ -96,14 +96,19 @@ export default function VentasMain() {
         <ModalCobro
           carrito={carrito || []}
           total={total}
-          onCerrar={async () => {
+          onCerrar={() => {
+            // ❌ Al cancelar/cerrar NO tocamos el stock ni limpiamos el carrito a la fuerza
+            setMostrarModalCobro(false);
+          }}
+          onVentaExitosa={async () => {
+            // ✅ Solo cuando el pago es exitoso descontamos stock y limpiamos el carrito
             if (carrito && carrito.length > 0) {
               await descontarStockProductos();
             }
             setMostrarModalCobro(false);
             setCarrito([]);
           }}
-          onVentaExitosa={() => {}}
+          onLimpiarCarrito={() => setCarrito([])}
         />
       )}
     </div>

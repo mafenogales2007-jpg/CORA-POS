@@ -37,7 +37,7 @@ export default function CarritoVenta({
             alignItems: 'center',
             borderBottom: '2px solid #f3f4f6',
             paddingBottom: '0.75rem',
-            marginBottom: '1rem',
+            marginBottom: '3rem',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
