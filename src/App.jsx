@@ -1,12 +1,58 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
+import { supabase } from './services/supabaseClient';
 import VentasMain from './components/ventas/VentasMain';
+import Login from './components/login/Login';
 import './css/ventas.css';
 
-function Sidebar() {
+function Sidebar({ session }) {
   const location = useLocation();
+  const emailUsuario = session?.user?.email || "Usuario";
+  
+  const [mostrarMenu, setMostrarMenu] = useState(false);
+  const [mostrarModalPass, setMostrarModalPass] = useState(false);
+  const [nuevaPassword, setNuevaPassword] = useState('');
+  const [mensajePass, setMensajePass] = useState({ texto: '', error: false });
+  const [cargandoPass, setCargandoPass] = useState(false);
 
-  // Se quitó 'Login' del menú lateral
+  const menuRef = useRef(null);
+
+  // Cerrar menú al hacer clic fuera
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setMostrarMenu(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleCambiarPassword = async (e) => {
+    e.preventDefault();
+    if (!nuevaPassword || nuevaPassword.length < 6) {
+      setMensajePass({ texto: 'La contraseña debe tener al menos 6 caracteres.', error: true });
+      return;
+    }
+
+    setCargandoPass(true);
+    setMensajePass({ texto: '', error: false });
+
+    const { error } = await supabase.auth.updateUser({ password: nuevaPassword });
+
+    setCargandoPass(false);
+    if (error) {
+      setMensajePass({ texto: error.message, error: true });
+    } else {
+      setMensajePass({ texto: '¡Contraseña actualizada con éxito!', error: false });
+      setTimeout(() => {
+        setMostrarModalPass(false);
+        setNuevaPassword('');
+        setMensajePass({ texto: '', error: false });
+      }, 2000);
+    }
+  };
+
   const enlaces = [
     {
       path: '/ventas',
@@ -46,24 +92,14 @@ function Sidebar() {
   ];
 
   return (
-    <aside className="sidebar-container">
+    <aside className="sidebar-container" style={{ position: 'relative' }}>
       <div>
-        {/* Arriba: Iniciales CP */}
-        <div className="sidebar-logo" title="CORA POS">
-          CP
-        </div>
-
-        {/* Menú de navegación solo íconos */}
+        <div className="sidebar-logo" title="CORA POS">CP</div>
         <nav className="sidebar-nav">
           {enlaces.map((enlace) => {
             const isActive = location.pathname === enlace.path || (enlace.path === '/ventas' && location.pathname === '/');
             return (
-              <Link
-                key={enlace.path}
-                to={enlace.path}
-                className={`sidebar-btn ${isActive ? 'active' : ''}`}
-                title={enlace.label}
-              >
+              <Link key={enlace.path} to={enlace.path} className={`sidebar-btn ${isActive ? 'active' : ''}`} title={enlace.label}>
                 {enlace.icon}
               </Link>
             );
@@ -71,33 +107,313 @@ function Sidebar() {
         </nav>
       </div>
 
-      {/* Abajo abajo: Perfil del usuario */}
-      <div className="sidebar-footer">
-        <button className="user-avatar" title="Perfil de Usuario">
+      {/* Footer del Sidebar: Perfil interactivo */}
+      <div className="sidebar-footer" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }} ref={menuRef}>
+        <div
+          onClick={() => setMostrarMenu(!mostrarMenu)}
+          style={{
+            width: '38px',
+            height: '38px',
+            borderRadius: '50%',
+            background: '#0A3D4C',
+            border: '2px solid #06B6D4',
+            color: '#ffffff',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 0 8px rgba(6, 182, 212, 0.3)',
+            cursor: 'pointer',
+            transition: 'transform 0.2s',
+          }}
+          title={emailUsuario}
+        >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
-            <circle cx="12" cy="7" r="4"/>
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
           </svg>
-        </button>
+        </div>
+
+        {/* Menú desplegable */}
+        {mostrarMenu && (
+          <div
+            style={{
+              position: 'absolute',
+              bottom: '0px',
+              left: '60px',
+              background: '#ffffff',
+              border: '1px solid #e2e8f0',
+              borderRadius: '10px',
+              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+              width: '210px',
+              zIndex: 1000,
+              overflow: 'hidden',
+              padding: '0.3rem',
+            }}
+          >
+            <div style={{ padding: '0.6rem 0.8rem', borderBottom: '1px solid #f1f5f9', marginBottom: '0.2rem' }}>
+              <p style={{ margin: 0, fontSize: '0.7rem', color: '#64748b' }}>Conectado como</p>
+              <p style={{ margin: 0, fontSize: '0.75rem', fontWeight: 'bold', color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {emailUsuario}
+              </p>
+            </div>
+
+            <button
+              onClick={() => {
+                setMostrarMenu(false);
+                setMostrarModalPass(true);
+              }}
+              style={{
+                width: '100%',
+                padding: '0.55rem 0.8rem',
+                background: 'transparent',
+                border: 'none',
+                textAlign: 'left',
+                fontSize: '0.8rem',
+                color: '#334155',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+              }}
+              onMouseEnter={(e) => e.target.style.background = '#f8fafc'}
+              onMouseLeave={(e) => e.target.style.background = 'transparent'}
+            >
+              🔑 Cambiar contraseña
+            </button>
+
+            <button
+              onClick={async () => {
+                setMostrarMenu(false);
+                await supabase.auth.signOut();
+              }}
+              style={{
+                width: '100%',
+                padding: '0.55rem 0.8rem',
+                background: 'transparent',
+                border: 'none',
+                textAlign: 'left',
+                fontSize: '0.8rem',
+                color: '#ef4444',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+              }}
+              onMouseEnter={(e) => e.target.style.background = '#fee2e2'}
+              onMouseLeave={(e) => e.target.style.background = 'transparent'}
+            >
+              🚪 Cerrar sesión
+            </button>
+          </div>
+        )}
       </div>
+
+      {/* Modal para Cambiar Contraseña */}
+      {mostrarModalPass && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            background: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 2000,
+          }}
+        >
+          <div
+            style={{
+              background: '#ffffff',
+              padding: '1.5rem',
+              borderRadius: '12px',
+              width: '320px',
+              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
+              boxSizing: 'border-box',
+            }}
+          >
+            <h3 style={{ margin: '0 0 1rem 0', color: '#0A3D4C', fontSize: '1.1rem', fontWeight: '700' }}>
+              Cambiar Contraseña
+            </h3>
+
+            <form onSubmit={handleCambiarPassword}>
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '600', color: '#475569', marginBottom: '0.3rem' }}>
+                  Nueva contraseña
+                </label>
+                <input
+                  type="password"
+                  value={nuevaPassword}
+                  onChange={(e) => setNuevaPassword(e.target.value)}
+                  placeholder="Mínimo 6 caracteres"
+                  style={{
+                    width: '100%',
+                    padding: '0.6rem',
+                    border: '1px solid #cbd5e1',
+                    borderRadius: '8px',
+                    fontSize: '0.85rem',
+                    boxSizing: 'border-box',
+                  }}
+                  required
+                />
+              </div>
+
+              {mensajePass.texto && (
+                <div
+                  style={{
+                    padding: '0.5rem',
+                    borderRadius: '6px',
+                    fontSize: '0.75rem',
+                    marginBottom: '1rem',
+                    background: mensajePass.error ? '#fee2e2' : '#dcfce7',
+                    color: mensajePass.error ? '#991b1b' : '#166534',
+                  }}
+                >
+                  {mensajePass.texto}
+                </div>
+              )}
+
+              <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMostrarModalPass(false);
+                    setNuevaPassword('');
+                    setMensajePass({ texto: '', error: false });
+                  }}
+                  style={{
+                    padding: '0.5rem 0.9rem',
+                    borderRadius: '6px',
+                    border: '1px solid #cbd5e1',
+                    background: '#f8fafc',
+                    color: '#475569',
+                    fontSize: '0.8rem',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={cargandoPass}
+                  style={{
+                    padding: '0.5rem 0.9rem',
+                    borderRadius: '6px',
+                    border: 'none',
+                    background: '#0A3D4C',
+                    color: '#fff',
+                    fontSize: '0.8rem',
+                    fontWeight: '600',
+                    cursor: cargandoPass ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  {cargandoPass ? 'Guardando...' : 'Actualizar'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </aside>
   );
 }
 
-function App() {
+function VistaVentas() {
+  return (
+    <div style={{ padding: '0.75rem 1.25rem', height: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <div style={{ flex: 1, overflow: 'hidden' }}>
+        <VentasMain />
+      </div>
+    </div>
+  );
+}
+
+function VistaInventario() {
+  return (
+    <div style={{ padding: '1.25rem 1.5rem', height: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <div style={{ marginBottom: '1rem', flexShrink: 0 }}>
+        <h1 style={{ fontSize: '1.6rem', fontWeight: '800', color: '#0A3D4C', margin: 0 }}>
+          Inventario
+        </h1>
+      </div>
+      <div style={{ flex: 1, overflow: 'auto', padding: '1rem', background: '#fff', borderRadius: '8px' }}>
+        <p style={{ color: '#64748b' }}>Módulo de inventario en configuración.</p>
+      </div>
+    </div>
+  );
+}
+
+function VistaReportes() {
+  return (
+    <div style={{ padding: '1.25rem 1.5rem', height: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <div style={{ marginBottom: '1rem', flexShrink: 0 }}>
+        <h1 style={{ fontSize: '1.6rem', fontWeight: '800', color: '#0A3D4C', margin: 0 }}>
+          Reportes
+        </h1>
+      </div>
+      <div style={{ flex: 1, overflow: 'auto', padding: '1rem', background: '#fff', borderRadius: '8px' }}>
+        <p style={{ color: '#64748b' }}>Módulo de reportes en configuración.</p>
+      </div>
+    </div>
+  );
+}
+
+export default function App() {
+  const [session, setSession] = useState(null);
+  const [cargandoAuth, setCargandoAuth] = useState(true);
+
+  useEffect(() => {
+    let mounted = true;
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (mounted) {
+        setSession(session);
+        setCargandoAuth(false);
+      }
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (mounted) {
+        setSession(session);
+      }
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  if (cargandoAuth) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', fontFamily: 'system-ui' }}>
+        Cargando sistema...
+      </div>
+    );
+  }
+
+  if (!session) {
+    return <Login />;
+  }
+
   return (
     <BrowserRouter>
       <div className="app-layout">
-        <Sidebar />
-        <div style={{ flex: 1, height: '100vh', overflow: 'hidden' }}>
+        <Sidebar session={session} />
+        <div style={{ flex: 1, height: '100vh', overflow: 'hidden', background: '#f8fafc' }}>
           <Routes>
-            <Route path="/ventas" element={<VentasMain />} />
-            <Route path="/" element={<VentasMain />} />
+            <Route path="/" element={<VistaVentas />} />
+            <Route path="/ventas" element={<VistaVentas />} />
+            <Route path="/inventario" element={<VistaInventario />} />
+            <Route path="/reportes" element={<VistaReportes />} />
           </Routes>
         </div>
       </div>
     </BrowserRouter>
   );
 }
-
-export default App;
