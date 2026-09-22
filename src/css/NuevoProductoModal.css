@@ -1,0 +1,248 @@
+.nuevo-producto-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(15, 23, 42, 0.55);
+}
+
+.nuevo-producto-modal {
+    width: 100%;
+    max-width: 520px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 20px 50px rgba(15, 23, 42, 0.25);
+}
+
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+
+.nuevo-producto-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 20px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.nuevo-producto-header-content {
+    min-width: 0;
+}
+
+.nuevo-producto-header h2 {
+    margin: 0;
+    color: #0f172a;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.nuevo-producto-header p {
+    margin: 5px 0 0;
+    color: #64748b;
+    font-size: 13px;
+}
+
+
+/* ============================================================
+   CERRAR
+   ============================================================ */
+
+.nuevo-producto-close {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: #64748b;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.nuevo-producto-close:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+}
+
+
+/* ============================================================
+   FORMULARIO
+   ============================================================ */
+
+.nuevo-producto-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+
+/* ============================================================
+   ERROR
+   ============================================================ */
+
+.nuevo-producto-error {
+    padding: 12px;
+    border: 1px solid #fecaca;
+    border-radius: 7px;
+    background: #fef2f2;
+    color: #b91c1c;
+    font-size: 13px;
+}
+
+
+/* ============================================================
+   CAMPOS
+   ============================================================ */
+
+.nuevo-producto-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.nuevo-producto-field label {
+    color: #334155;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+
+/* ============================================================
+   INPUTS
+   ============================================================ */
+
+.nuevo-producto-field input,
+.nuevo-producto-field textarea,
+.nuevo-producto-field select {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 7px;
+    background: #ffffff;
+    color: #0f172a;
+    font-family: inherit;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.nuevo-producto-field input:focus,
+.nuevo-producto-field textarea:focus,
+.nuevo-producto-field select:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.nuevo-producto-field input:disabled,
+.nuevo-producto-field textarea:disabled,
+.nuevo-producto-field select:disabled {
+    background: #f8fafc;
+    color: #94a3b8;
+    cursor: not-allowed;
+}
+
+.nuevo-producto-field textarea {
+    min-height: 80px;
+    resize: vertical;
+}
+
+.nuevo-producto-field small {
+    color: #94a3b8;
+    font-size: 11px;
+}
+
+
+/* ============================================================
+   BOTONES
+   ============================================================ */
+
+.nuevo-producto-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 4px;
+    padding-top: 16px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.nuevo-producto-button {
+    min-width: 110px;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.nuevo-producto-button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+
+/* ============================================================
+   CANCELAR
+   ============================================================ */
+
+.nuevo-producto-button-cancel {
+    background: #e2e8f0;
+    color: #334155;
+}
+
+.nuevo-producto-button-cancel:hover:not(:disabled) {
+    background: #cbd5e1;
+}
+
+
+/* ============================================================
+   GUARDAR
+   ============================================================ */
+
+.nuevo-producto-button-save {
+    background: #2563eb;
+    color: #ffffff;
+}
+
+.nuevo-producto-button-save:hover:not(:disabled) {
+    background: #1d4ed8;
+}
+
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+
+@media (max-width: 600px) {
+    .nuevo-producto-overlay {
+        padding: 12px;
+    }
+    .nuevo-producto-modal {
+        max-height: 95vh;
+    }
+    .nuevo-producto-header,
+    .nuevo-producto-form {
+        padding: 16px;
+    }
+    .nuevo-producto-actions {
+        flex-direction: column-reverse;
+    }
+    .nuevo-producto-button {
+        width: 100%;
+    }
+}
