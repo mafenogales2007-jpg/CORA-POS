@@ -16,6 +16,15 @@ export default function CatalogoProductos({ onAgregarProducto, keyUpdate, produc
   const [nuevaCategoria, setNuevaCategoria] = useState('');
   const [cargandoCat, setCargandoCat] = useState(false);
 
+  // Estados para la Pantalla/Modal de Confirmación Personalizada
+  const [modalConfirmacion, setModalConfirmacion] = useState({
+    visible: false,
+    titulo: '',
+    mensaje: '',
+    tipo: 'info', // 'info' o 'error'
+    onAceptar: null
+  });
+
   // Carga inicial (solo la primera vez que abre la app)
   const cargarDatosIniciales = async () => {
     setCargando(true);
@@ -27,6 +36,7 @@ export default function CatalogoProductos({ onAgregarProducto, keyUpdate, produc
       setCategorias(dataCategorias || []);
     } catch (error) {
       console.error('Error cargando catálogo:', error);
+      mostrarAviso('Error', 'No se pudo cargar el catálogo de productos.', 'error');
     } finally {
       setCargando(false);
     }
@@ -68,6 +78,20 @@ export default function CatalogoProductos({ onAgregarProducto, keyUpdate, produc
     return limpio.charAt(0).toUpperCase() + limpio.slice(1).toLowerCase();
   };
 
+  const mostrarAviso = (titulo, mensaje, tipo = 'info', onAceptar = null) => {
+    setModalConfirmacion({
+      visible: true,
+      titulo,
+      mensaje,
+      tipo,
+      onAceptar
+    });
+  };
+
+  const cerrarAviso = () => {
+    setModalConfirmacion({ visible: false, titulo: '', mensaje: '', tipo: 'info', onAceptar: null });
+  };
+
   const handleCrearCategoria = async (e) => {
     e.preventDefault();
     const nombreFormateado = formatearTexto(nuevaCategoria);
@@ -87,32 +111,12 @@ export default function CatalogoProductos({ onAgregarProducto, keyUpdate, produc
       setCategoriaSeleccionada(data.id);
       setNuevaCategoria('');
       setMostrarModalCat(false);
+      mostrarAviso('¡Éxito!', 'La categoría se ha creado correctamente.', 'info');
     } catch (err) {
       console.error('Error al crear categoría:', err);
-      alert('No se pudo crear la categoría.');
+      mostrarAviso('Error', 'No se pudo crear la categoría.', 'error');
     } finally {
       setCargandoCat(false);
-    }
-  };
-
-  const eliminarProducto = async (e, id, nombre) => {
-    e.stopPropagation();
-    const confirmar = window.confirm(`¿Deseas eliminar la tarjeta de "${nombre}"?`);
-    if (!confirmar) return;
-
-    try {
-      await supabase.from('detalle_ventas').delete().eq('producto_id', id);
-      const { error } = await supabase.from('productos').delete().eq('id', id);
-      if (error) throw error;
-
-      setProductos((prev) => prev.filter((p) => p.id !== id));
-      setFavoritos((prev) => {
-        const nuevosFavs = new Set(prev);
-        nuevosFavs.delete(id);
-        return nuevosFavs;
-      });
-    } catch (err) {
-      alert(`Error al eliminar: ${err.message}`);
     }
   };
 
@@ -373,17 +377,6 @@ export default function CatalogoProductos({ onAgregarProducto, keyUpdate, produc
                         {estaAgotado ? 'Sin stock' : `${stockNum} ${unidadLabel}`}
                       </div>
                     </div>
-
-                    <button
-                      onClick={(e) => eliminarProducto(e, prod.id, prod.nombre)}
-                      style={{
-                        backgroundColor: '#fee2e2', color: '#ef4444', border: 'none', borderRadius: '50%',
-                        width: '22px', height: '22px', fontSize: '0.65rem', fontWeight: 'bold', cursor: 'pointer',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center'
-                      }}
-                    >
-                      ✕
-                    </button>
                   </div>
                 </div>
               </div>
@@ -418,6 +411,62 @@ export default function CatalogoProductos({ onAgregarProducto, keyUpdate, produc
                 <button type="submit" disabled={cargandoCat} style={{ flex: 1.5, padding: '0.75rem', borderRadius: '10px', border: 'none', background: '#164e63', color: '#fff', cursor: 'pointer' }}>Guardar</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL / PANTALLA DE CONFIRMACIÓN O AVISO PERSONALIZADO */}
+      {modalConfirmacion.visible && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(15, 23, 42, 0.7)', backdropFilter: 'blur(6px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 11000, padding: '1rem'
+        }}>
+          <div style={{
+            backgroundColor: '#ffffff', padding: '1.75rem', borderRadius: '20px',
+            width: '100%', maxWidth: '360px', textAlign: 'center',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
+          }}>
+            <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>
+              {modalConfirmacion.tipo === 'error' ? '⚠️' : '✨'}
+            </div>
+            <h3 style={{ margin: '0 0 0.5rem 0', color: '#0F172A', fontSize: '1.15rem', fontWeight: '800' }}>
+              {modalConfirmacion.titulo}
+            </h3>
+            <p style={{ margin: '0 0 1.5rem 0', color: '#64748b', fontSize: '0.9rem', lineHeight: '1.4' }}>
+              {modalConfirmacion.mensaje}
+            </p>
+            <div style={{ display: 'flex', gap: '0.75rem' }}>
+              {modalConfirmacion.onAceptar && (
+                <button
+                  type="button"
+                  onClick={cerrarAviso}
+                  style={{
+                    flex: 1, padding: '0.7rem', borderRadius: '10px',
+                    border: '1px solid #cbd5e1', background: '#ffffff', color: '#334155',
+                    fontWeight: '700', fontSize: '0.85rem', cursor: 'pointer'
+                  }}
+                >
+                  Cancelar
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  if (modalConfirmacion.onAceptar) {
+                    modalConfirmacion.onAceptar();
+                  }
+                  cerrarAviso();
+                }}
+                style={{
+                  flex: 1, padding: '0.7rem', borderRadius: '10px',
+                  border: 'none', background: '#164e63', color: '#ffffff',
+                  fontWeight: '700', fontSize: '0.85rem', cursor: 'pointer'
+                }}
+              >
+                Aceptar
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
 import { supabase } from './services/supabaseClient';
 import VentasMain from './components/ventas/VentasMain';
+import InventarioMain from './components/inventario/InventarioMain';
+import ReportesMain from './components/reportes/ReportesMain';
 import Login from './components/login/Login';
 import './css/ventas.css';
-
+ 
 function Sidebar({ session }) {
   const location = useLocation();
   const emailUsuario = session?.user?.email || "Usuario";
@@ -14,9 +16,9 @@ function Sidebar({ session }) {
   const [nuevaPassword, setNuevaPassword] = useState('');
   const [mensajePass, setMensajePass] = useState({ texto: '', error: false });
   const [cargandoPass, setCargandoPass] = useState(false);
-
+ 
   const menuRef = useRef(null);
-
+ 
   // Cerrar menú al hacer clic fuera
   useEffect(() => {
     function handleClickOutside(event) {
@@ -27,19 +29,19 @@ function Sidebar({ session }) {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
+ 
   const handleCambiarPassword = async (e) => {
     e.preventDefault();
     if (!nuevaPassword || nuevaPassword.length < 6) {
       setMensajePass({ texto: 'La contraseña debe tener al menos 6 caracteres.', error: true });
       return;
     }
-
+ 
     setCargandoPass(true);
     setMensajePass({ texto: '', error: false });
-
+ 
     const { error } = await supabase.auth.updateUser({ password: nuevaPassword });
-
+ 
     setCargandoPass(false);
     if (error) {
       setMensajePass({ texto: error.message, error: true });
@@ -52,7 +54,7 @@ function Sidebar({ session }) {
       }, 2000);
     }
   };
-
+ 
   const enlaces = [
     {
       path: '/ventas',
@@ -90,7 +92,7 @@ function Sidebar({ session }) {
       )
     }
   ];
-
+ 
   return (
     <aside className="sidebar-container" style={{ position: 'relative' }}>
       <div>
@@ -106,7 +108,7 @@ function Sidebar({ session }) {
           })}
         </nav>
       </div>
-
+ 
       {/* Footer del Sidebar: Perfil interactivo */}
       <div className="sidebar-footer" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }} ref={menuRef}>
         <div
@@ -132,7 +134,7 @@ function Sidebar({ session }) {
             <circle cx="12" cy="7" r="4"></circle>
           </svg>
         </div>
-
+ 
         {/* Menú desplegable */}
         {mostrarMenu && (
           <div
@@ -156,8 +158,9 @@ function Sidebar({ session }) {
                 {emailUsuario}
               </p>
             </div>
-
+ 
             <button
+              type="button"
               onClick={() => {
                 setMostrarMenu(false);
                 setMostrarModalPass(true);
@@ -179,10 +182,11 @@ function Sidebar({ session }) {
               onMouseEnter={(e) => e.target.style.background = '#f8fafc'}
               onMouseLeave={(e) => e.target.style.background = 'transparent'}
             >
-              🔑 Cambiar contraseña
+              Cambiar contraseña
             </button>
-
+ 
             <button
+              type="button"
               onClick={async () => {
                 setMostrarMenu(false);
                 await supabase.auth.signOut();
@@ -204,12 +208,12 @@ function Sidebar({ session }) {
               onMouseEnter={(e) => e.target.style.background = '#fee2e2'}
               onMouseLeave={(e) => e.target.style.background = 'transparent'}
             >
-              🚪 Cerrar sesión
+              Cerrar sesión
             </button>
           </div>
         )}
       </div>
-
+ 
       {/* Modal para Cambiar Contraseña */}
       {mostrarModalPass && (
         <div
@@ -239,7 +243,7 @@ function Sidebar({ session }) {
             <h3 style={{ margin: '0 0 1rem 0', color: '#0A3D4C', fontSize: '1.1rem', fontWeight: '700' }}>
               Cambiar Contraseña
             </h3>
-
+ 
             <form onSubmit={handleCambiarPassword}>
               <div style={{ marginBottom: '1rem' }}>
                 <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '600', color: '#475569', marginBottom: '0.3rem' }}>
@@ -261,7 +265,7 @@ function Sidebar({ session }) {
                   required
                 />
               </div>
-
+ 
               {mensajePass.texto && (
                 <div
                   style={{
@@ -276,7 +280,7 @@ function Sidebar({ session }) {
                   {mensajePass.texto}
                 </div>
               )}
-
+ 
               <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
                 <button
                   type="button"
@@ -306,7 +310,7 @@ function Sidebar({ session }) {
                     borderRadius: '6px',
                     border: 'none',
                     background: '#0A3D4C',
-                    color: '#fff',
+                    color: '#ffffff',
                     fontSize: '0.8rem',
                     fontWeight: '600',
                     cursor: cargandoPass ? 'not-allowed' : 'pointer',
@@ -323,76 +327,29 @@ function Sidebar({ session }) {
   );
 }
 
-function VistaVentas() {
-  return (
-    <div style={{ padding: '0.75rem 1.25rem', height: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-      <div style={{ flex: 1, overflow: 'hidden' }}>
-        <VentasMain />
-      </div>
-    </div>
-  );
-}
-
-function VistaInventario() {
-  return (
-    <div style={{ padding: '1.25rem 1.5rem', height: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-      <div style={{ marginBottom: '1rem', flexShrink: 0 }}>
-        <h1 style={{ fontSize: '1.6rem', fontWeight: '800', color: '#0A3D4C', margin: 0 }}>
-          Inventario
-        </h1>
-      </div>
-      <div style={{ flex: 1, overflow: 'auto', padding: '1rem', background: '#fff', borderRadius: '8px' }}>
-        <p style={{ color: '#64748b' }}>Módulo de inventario en configuración.</p>
-      </div>
-    </div>
-  );
-}
-
-function VistaReportes() {
-  return (
-    <div style={{ padding: '1.25rem 1.5rem', height: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-      <div style={{ marginBottom: '1rem', flexShrink: 0 }}>
-        <h1 style={{ fontSize: '1.6rem', fontWeight: '800', color: '#0A3D4C', margin: 0 }}>
-          Reportes
-        </h1>
-      </div>
-      <div style={{ flex: 1, overflow: 'auto', padding: '1rem', background: '#fff', borderRadius: '8px' }}>
-        <p style={{ color: '#64748b' }}>Módulo de reportes en configuración.</p>
-      </div>
-    </div>
-  );
-}
-
 export default function App() {
   const [session, setSession] = useState(null);
-  const [cargandoAuth, setCargandoAuth] = useState(true);
+  const [cargandoSesion, setCargandoSesion] = useState(true);
 
   useEffect(() => {
-    let mounted = true;
-
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (mounted) {
-        setSession(session);
-        setCargandoAuth(false);
-      }
+      setSession(session);
+      setCargandoSesion(false);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (mounted) {
-        setSession(session);
-      }
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
     });
 
-    return () => {
-      mounted = false;
-      subscription.unsubscribe();
-    };
+    return () => subscription.unsubscribe();
   }, []);
 
-  if (cargandoAuth) {
+  if (cargandoSesion) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', fontFamily: 'system-ui' }}>
-        Cargando sistema...
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: '#0A3D4C', color: '#06B6D4', fontFamily: 'system-ui' }}>
+        <h3>Cargando CORA POS...</h3>
       </div>
     );
   }
@@ -403,16 +360,17 @@ export default function App() {
 
   return (
     <BrowserRouter>
-      <div className="app-layout">
+      <div style={{ display: 'flex', height: '100vh', width: '100vw', overflow: 'hidden' }}>
         <Sidebar session={session} />
-        <div style={{ flex: 1, height: '100vh', overflow: 'hidden', background: '#f8fafc' }}>
+        <main style={{ flex: 1, overflowY: 'auto', backgroundColor: '#f8fafc' }}>
           <Routes>
-            <Route path="/" element={<VistaVentas />} />
-            <Route path="/ventas" element={<VistaVentas />} />
-            <Route path="/inventario" element={<VistaInventario />} />
-            <Route path="/reportes" element={<VistaReportes />} />
+            <Route path="/" element={<VentasMain />} />
+            <Route path="/ventas" element={<VentasMain />} />
+            <Route path="/inventario" element={<InventarioMain />} />
+            <Route path="/reportes" element={<ReportesMain />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
-        </div>
+        </main>
       </div>
     </BrowserRouter>
   );
